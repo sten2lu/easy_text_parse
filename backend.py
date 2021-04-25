@@ -1,11 +1,8 @@
 import json
 import re
+from tqdm import tqdm
+from language import get_lange_cld
 
-
-# filename = 'tweet_stream_01'
-# addendum = '_processed'
-# ending = '.txt'
-# key = 'text'
 
 def load_data(filename, ending='.txt'):
     #Load lines
@@ -28,8 +25,41 @@ def load_data(filename, ending='.txt'):
     del lines
     return tweet_dicts
 
+def language_search(tweet_dicts, key='text', language='de', min_words=0):
+    filtered_tweet_dicts = []
+    found_tweet_dicts = []
+    not_applicable_tweet_dicts = []
+    for i, tweet in enumerate(tqdm(tweet_dicts)):
+        text = tweet[key]
+        if len(text.split(' ')) < min_words:
+            not_applicable_tweet_dicts.append(i)
+        else:
+            lang = get_lange_cld(text)
+            match = lang == language
+            if match is False:
+                found_tweet_dicts.append(i)
+            else:
+                filtered_tweet_dicts.append(i)
+
+    print(f"Tweets found in language {language} : {len(filtered_tweet_dicts)}")
+    print(f"Tweets found not language {language} : {len(found_tweet_dicts)}")
+    print(f"Tweets too short for identifier to be trusted : {len(not_applicable_tweet_dicts)}")
+    return found_tweet_dicts, filtered_tweet_dicts, not_applicable_tweet_dicts
+
+
 
 def regex_search(pattern, tweet_dicts, key='text'):
+    """Seaches for matches between the tweet_dict[key] and the regex patterns.
+        Returns list of indices where there is a match
+
+    Args:
+        pattern ([type]): [description]
+        tweet_dicts ([type]): [description]
+        key (str, optional): [description]. Defaults to 'text'.
+
+    Returns:
+        [type]: [description]
+    """
     filtered_tweet_dicts = []
     found_tweet_dicts = []
     for i, tweet in enumerate(tweet_dicts):
@@ -55,6 +85,7 @@ def merge_filtered(found_tweet_dicts, filtered_tweet_dicts, tweet_dicts, key='te
         print(f"Name : {tweet['user']['name']}")
         print(f"Screen Name : {tweet['user']['screen_name']}")
         print(f"Location : {tweet['user']['location']}")
+        print(f"Language Classifer : {get_lange_cld(tweet[key])}")
         while True:
             keep = str(input('Keep [y/n] :'))
             if keep == 'y':

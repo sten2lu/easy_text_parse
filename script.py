@@ -1,7 +1,6 @@
 from backend import *
 
-# filename = 'tweet_stream_01'
-filename = 'tweet_stream_01_processed'
+filename = 'tweet_stream_01'
 addendum = '_processed'
 ending = '.txt'
 key = 'text'
